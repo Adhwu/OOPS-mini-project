@@ -1,39 +1,141 @@
 import java.util.Scanner;
 import java.util.Arrays;
 
-public class AttendanceSimulator {
-    private static int[] A_23MAT116 = {69, 62};
-    private static int[] A_23MAT117 = {67, 60};
-    private static int[] A_22ADM111 = {28, 26};
-    private static int[] A_23CSE111 = {65, 57};
-    private static int[] A_23CSE113 = {55, 50};
-    private static int[] A_23MEE115 = {30, 27};
-    private static int[] A_23PHY115 = {45, 39};
+class Subject {
+    private String code;
+    private String name;
+    private int[] attendance;
 
-    private static String[] monday = {"23MAT116", "23MAT117", "Class Discussion", "23PHY115", "23CSE111", "23CSE111 ", "Class Discussion"};
-    private static String[] tuesday = {"23PHY115", "22ADM111", "23MAT116", "23MAT117", "23MAT117", "23CSE113", "23CSE111"};
-    private static String[] wednesday = {"23CSE111", "23CSE111", "23MAT116", "23MAT116", "23MAT117", "23PHY115", "Library/Club"};
-    private static String[] thursday = {"23MAT116", "23CSE111", "23MAT117", "23MAT117", "23MEE115", "23MEE115", "23MEE115"};
-    private static String[] friday = {"23CSE113", "23CSE113", "22ADM111", "23PHY115", "23MAT117", "23CSE111", "23CSE113"};
-    private static String[] subject_codes = {"MAT116", "MAT117", "PHY115", "CSE111", "ADM111", "CSE113", "MEE115"};
-
-    public static void main(String[] args) {
-        simulate();
+    public Subject(String code, String name, int[] initialAttendance) {
+        this.code = code;
+        this.name = name;
+        this.attendance = Arrays.copyOf(initialAttendance, initialAttendance.length);
     }
 
-    public static void simulate() {
+    public void markAttendance(boolean isPresent) {
+        attendance[0]++;
+        if (isPresent) {
+            attendance[1]++;
+        }
+    }
+
+    public void markMultipleAttendance(int classes, boolean isPresent) {
+        attendance[0] += classes;
+        if (isPresent) {
+            attendance[1] += classes;
+        }
+    }
+
+    public double getAttendancePercentage() {
+        return (attendance[1] / (double) attendance[0]) * 100;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int[] getAttendance() {
+        return Arrays.copyOf(attendance, attendance.length);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s %s %.2f%%", code, Arrays.toString(attendance), getAttendancePercentage());
+    }
+}
+
+class DaySchedule {
+    private String dayName;
+    private String[] subjects;
+
+    public DaySchedule(String dayName, String[] subjects) {
+        this.dayName = dayName;
+        this.subjects = Arrays.copyOf(subjects, subjects.length);
+    }
+
+    public String getDayName() {
+        return dayName;
+    }
+
+    public String[] getSubjects() {
+        return Arrays.copyOf(subjects, subjects.length);
+    }
+}
+
+class AttendanceReport {
+    public static void printCurrentAttendance(Subject[] subjects) {
+        System.out.println("CURRENT ATTENDANCE");
+        for (Subject subject : subjects) {
+            System.out.println(subject);
+        }
+        System.out.println();
+    }
+
+    public static void printFinalReport(Subject[] subjects) {
+        System.out.println("SUBJECT CODE     SUBJECT NAME                             CLASS RECORDS    PERCENTAGE");
+        for (Subject subject : subjects) {
+            System.out.printf("%-10s   -    %-40s  %-15s  %.2f%%%n",
+                    subject.getCode(),
+                    subject.getName(),
+                    Arrays.toString(subject.getAttendance()),
+                    subject.getAttendancePercentage());
+        }
+
+        for (Subject subject : subjects) {
+            double percentage = subject.getAttendancePercentage();
+            if (percentage < 80 && percentage >= 75) {
+                System.out.printf("YOU HAVE LOW ATTENDANCE (%.2f%%) in %s !  DONT TAKE ANY MORE LEAVES%n",
+                        percentage, subject.getCode());
+            } else if (percentage < 75) {
+                System.out.printf("YOU HAVE SHORTAGE OF ATTENDANCE (%.2f%%) in %s ! VISIT YOUR CLASS ADVISOR AND ATTEND MORE CLASSES !!%n",
+                        percentage, subject.getCode());
+            }
+        }
+    }
+}
+
+public class AttendanceSimulator {
+    private Subject[] subjects;
+    private DaySchedule[] weeklySchedule;
+
+    public AttendanceSimulator() {
+        initializeSubjects();
+        initializeWeeklySchedule();
+    }
+
+    private void initializeSubjects() {
+        subjects = new Subject[]{
+                new Subject("23MAT116", "Discrete Mathematics", new int[]{69, 62}),
+                new Subject("23MAT117", "Linear Algebra", new int[]{67, 60}),
+                new Subject("22ADM111", "Glimpses of Glorious India", new int[]{28, 26}),
+                new Subject("23CSE111", "Object Oriented Programming", new int[]{65, 57}),
+                new Subject("23CSE113", "User Interface Design", new int[]{55, 50}),
+                new Subject("23MEE115", "Manufacturing Practice", new int[]{30, 27}),
+                new Subject("23PHY115", "Modern Physics", new int[]{45, 39})
+        };
+    }
+
+    private void initializeWeeklySchedule() {
+        weeklySchedule = new DaySchedule[]{
+                new DaySchedule("MONDAY", new String[]{"23MAT116", "23MAT117", "Class Discussion", "23PHY115", "23CSE111", "23CSE111", "Class Discussion"}),
+                new DaySchedule("TUESDAY", new String[]{"23PHY115", "22ADM111", "23MAT116", "23MAT117", "23MAT117", "23CSE113", "23CSE111"}),
+                new DaySchedule("WEDNESDAY", new String[]{"23CSE111", "23CSE111", "23MAT116", "23MAT116", "23MAT117", "23PHY115", "Library/Club"}),
+                new DaySchedule("THURSDAY", new String[]{"23MAT116", "23CSE111", "23MAT117", "23MAT117", "23MEE115", "23MEE115", "23MEE115"}),
+                new DaySchedule("FRIDAY", new String[]{"23CSE113", "23CSE113", "22ADM111", "23PHY115", "23MAT117", "23CSE111", "23CSE113"})
+        };
+    }
+
+    public void simulate() {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("WELCOME TO AMRITA ATTENDANCE SIMULATION PORTAL");
         System.out.println();
         System.out.println("YOUR CURRENT ATTENDANCE IS");
-        System.out.println("23MAT116 = " + Arrays.toString(A_23MAT116));
-        System.out.println("23MAT117 = " + Arrays.toString(A_23MAT117));
-        System.out.println("22ADM111 = " + Arrays.toString(A_22ADM111));
-        System.out.println("23CSE111 = " + Arrays.toString(A_23CSE111));
-        System.out.println("23CSE113 = " + Arrays.toString(A_23CSE113));
-        System.out.println("23MEE115 = " + Arrays.toString(A_23MEE115));
-        System.out.println("23PHY115 = " + Arrays.toString(A_23PHY115));
+        AttendanceReport.printCurrentAttendance(subjects);
 
         while (true) {
             System.out.println();
@@ -50,141 +152,21 @@ public class AttendanceSimulator {
                 9) EXIT""");
             System.out.println();
 
-            int a = scanner.nextInt();
+            int choice = scanner.nextInt();
             System.out.println();
 
-            switch (a) {
-                case 1 -> {
-                    System.out.println("MONDAY");
-                    System.out.println("""
-                            1) PRESENT
-                            2) ABSENT""");
-                    int b = scanner.nextInt();
-                    if (b == 1) {
-                        A_23MAT116[0] += 1; A_23MAT116[1] += 1;
-                        A_23MAT117[0] += 1; A_23MAT117[1] += 1;
-                        A_23PHY115[0] += 1; A_23PHY115[1] += 1;
-                        A_23CSE111[0] += 2; A_23CSE111[1] += 2;
-                    } else if (b == 2) {
-                        A_23MAT116[0] += 1;
-                        A_23MAT117[0] += 1;
-                        A_23PHY115[0] += 1;
-                        A_23CSE111[0] += 2;
-                    }
-                }
-                case 2 -> {
-                    System.out.println("TUESDAY");
-                    System.out.println("""
-                            1) PRESENT
-                            2) ABSENT""");
-                    int b = scanner.nextInt();
-                    if (b == 1) {
-                        A_23PHY115[0] += 1; A_23PHY115[1] += 1;
-                        A_22ADM111[0] += 1; A_22ADM111[1] += 1;
-                        A_23MAT116[0] += 1; A_23MAT116[1] += 1;
-                        A_23MAT117[0] += 2; A_23MAT117[1] += 2;
-                        A_23CSE113[0] += 1; A_23CSE113[1] += 1;
-                        A_23CSE111[0] += 1; A_23CSE111[1] += 1;
-                    } else if (b == 2) {
-                        A_23PHY115[0] += 1;
-                        A_22ADM111[0] += 1;
-                        A_23MAT116[0] += 1;
-                        A_23MAT117[0] += 2;
-                        A_23CSE113[0] += 1;
-                        A_23CSE111[0] += 1;
-                    }
-                }
-                case 3 -> {
-                    System.out.println("WEDNESDAY");
-                    System.out.println("""
-                            1) PRESENT
-                            2) ABSENT""");
-                    int b = scanner.nextInt();
-                    if (b == 1) {
-                        A_23CSE111[0] += 2; A_23CSE111[1] += 2;
-                        A_23MAT116[0] += 2; A_23MAT116[1] += 2;
-                        A_23MAT117[0] += 1; A_23MAT117[1] += 1;
-                        A_23PHY115[0] += 1; A_23PHY115[1] += 1;
-                    } else if (b == 2) {
-                        A_23CSE111[0] += 2;
-                        A_23MAT116[0] += 2;
-                        A_23MAT117[0] += 1;
-                        A_23PHY115[0] += 1;
-                    }
-                }
-                case 4 -> {
-                    System.out.println("THURSDAY");
-                    System.out.println("""
-                            1) PRESENT
-                            2) ABSENT""");
-                    int b = scanner.nextInt();
-                    if (b == 1) {
-                        A_23MAT116[0] += 1; A_23MAT116[1] += 1;
-                        A_23CSE111[0] += 1; A_23CSE111[1] += 1;
-                        A_23MAT117[0] += 2; A_23MAT117[1] += 2;
-                        A_23MEE115[0] += 3; A_23MEE115[1] += 3;
-                    } else if (b == 2) {
-                        A_23MAT116[0] += 1;
-                        A_23CSE111[0] += 1;
-                        A_23MAT117[0] += 2;
-                        A_23MEE115[0] += 3;
-                    }
-                }
-                case 5 -> {
-                    System.out.println("FRIDAY");
-                    System.out.println("""
-                            1) PRESENT
-                            2) ABSENT""");
-                    int b = scanner.nextInt();
-                    if (b == 1) {
-                        A_23CSE113[0] += 2; A_23CSE113[1] += 2;
-                        A_22ADM111[0] += 1; A_22ADM111[1] += 1;
-                        A_23PHY115[0] += 1; A_23PHY115[1] += 1;
-                        A_23MAT117[0] += 1; A_23MAT117[1] += 1;
-                        A_23CSE111[0] += 1; A_23CSE111[1] += 1;
-                        A_23CSE113[0] += 1; A_23CSE113[1] += 1;
-                    } else if (b == 2) {
-                        A_23CSE113[0] += 2;
-                        A_22ADM111[0] += 1;
-                        A_23PHY115[0] += 1;
-                        A_23MAT117[0] += 1;
-                        A_23CSE111[0] += 1;
-                        A_23CSE113[0] += 1;
-                    }
-                }
-                case 6 -> {
-                    System.out.println("SIMULATING THIS WEEK");
-                    System.out.println("""
-                            1) PRESENT
-                            2) ABSENT""");
-                    int b = scanner.nextInt();
-                    if (b == 1) {
-                        A_23MAT116[0] += 6; A_23MAT116[1] += 6;
-                        A_23MAT117[0] += 6; A_23MAT117[1] += 6;
-                        A_22ADM111[0] += 2; A_22ADM111[1] += 2;
-                        A_23CSE111[0] += 6; A_23CSE111[1] += 6;
-                        A_23CSE113[0] += 5; A_23CSE113[1] += 5;
-                        A_23MEE115[0] += 3; A_23MEE115[1] += 3;
-                        A_23PHY115[0] += 4; A_23PHY115[1] += 4;
-                    } else if (b == 2) {
-                        A_23MAT116[0] += 6;
-                        A_23MAT117[0] += 6;
-                        A_22ADM111[0] += 2;
-                        A_23CSE111[0] += 6;
-                        A_23CSE113[0] += 5;
-                        A_23MEE115[0] += 3;
-                        A_23PHY115[0] += 4;
-                    }
-                }
+            switch (choice) {
+                case 1 -> simulateDay(0, scanner);
+                case 2 -> simulateDay(1, scanner);
+                case 3 -> simulateDay(2, scanner);
+                case 4 -> simulateDay(3, scanner);
+                case 5 -> simulateDay(4, scanner);
+                case 6 -> simulateWeek(scanner);
                 case 7 -> System.out.println("HOLIDAY !!!");
-                case 8 -> {
-                    System.out.println("CURRENT ATTENDANCE");
-                    printAttendance();
-                    System.out.println();
-                }
+                case 8 -> AttendanceReport.printCurrentAttendance(subjects);
                 case 9 -> {
                     System.out.println("THANK YOU");
-                    printFinalReport();
+                    AttendanceReport.printFinalReport(subjects);
                     scanner.close();
                     return;
                 }
@@ -194,43 +176,51 @@ public class AttendanceSimulator {
         }
     }
 
-    private static void printAttendance() {
-        System.out.printf("23MAT116 %s %.2f%%%n", Arrays.toString(A_23MAT116), (A_23MAT116[1]/(double)A_23MAT116[0])*100);
-        System.out.printf("23MAT117 %s %.2f%%%n", Arrays.toString(A_23MAT117), (A_23MAT117[1]/(double)A_23MAT117[0])*100);
-        System.out.printf("22ADM111 %s %.2f%%%n", Arrays.toString(A_22ADM111), (A_22ADM111[1]/(double)A_22ADM111[0])*100);
-        System.out.printf("23CSE111 %s %.2f%%%n", Arrays.toString(A_23CSE111), (A_23CSE111[1]/(double)A_23CSE111[0])*100);
-        System.out.printf("23CSE113 %s %.2f%%%n", Arrays.toString(A_23CSE113), (A_23CSE113[1]/(double)A_23CSE113[0])*100);
-        System.out.printf("23MEE115 %s %.2f%%%n", Arrays.toString(A_23MEE115), (A_23MEE115[1]/(double)A_23MEE115[0])*100);
-        System.out.printf("23PHY115 %s %.2f%%%n", Arrays.toString(A_23PHY115), (A_23PHY115[1]/(double)A_23PHY115[0])*100);
-    }
+    private void simulateDay(int dayIndex, Scanner scanner) {
+        DaySchedule day = weeklySchedule[dayIndex];
+        System.out.println(day.getDayName());
+        System.out.println("""
+                1) PRESENT
+                2) ABSENT""");
+        int attendanceChoice = scanner.nextInt();
+        boolean isPresent = (attendanceChoice == 1);
 
-    private static void printFinalReport() {
-        double A = (A_23MAT116[1]/(double)A_23MAT116[0])*100;
-        double B = (A_23MAT117[1]/(double)A_23MAT117[0])*100;
-        double C = (A_22ADM111[1]/(double)A_22ADM111[0])*100;
-        double D = (A_23CSE111[1]/(double)A_23CSE111[0])*100;
-        double E = (A_23CSE113[1]/(double)A_23CSE113[0])*100;
-        double F = (A_23MEE115[1]/(double)A_23MEE115[0])*100;
-        double G = (A_23PHY115[1]/(double)A_23PHY115[0])*100;
-
-        double[] L1 = {A, B, C, D, E, F, G};
-        String[] L2 = {"23MAT116", "23MAT117", "22ADM111", "23CSE111", "23CSE113", "23MEE115", "23PHY115"};
-
-        System.out.println("SUBJECT CODE     SUBJECT NAME                             CLASS RECORDS    PERCENTAGE");
-        System.out.printf("23MAT116   -    Discrete Mathematics                           %s      %.2f%%%n", Arrays.toString(A_23MAT116), A);
-        System.out.printf("23MAT117   -    Linear Algebra                                 %s      %.2f%%%n", Arrays.toString(A_23MAT117), B);
-        System.out.printf("22ADM111   -    Glimpses of Glorious India                     %s      %.2f%%%n", Arrays.toString(A_22ADM111), C);
-        System.out.printf("23CSE111   -    Object Oriented Programming                    %s      %.2f%%%n", Arrays.toString(A_23CSE111), D);
-        System.out.printf("23CSE113   -    User Interface Design                          %s      %.2f%%%n", Arrays.toString(A_23CSE113), E);
-        System.out.printf("23MEE115   -    Manufacturing Practice                         %s      %.2f%%%n", Arrays.toString(A_23MEE115), F);
-        System.out.printf("23PHY115   -    Modern Physics                                 %s      %.2f%%%n", Arrays.toString(A_23PHY115), G);
-
-        for (int i = 0; i < L1.length; i++) {
-            if (L1[i] < 80 && L1[i] >= 75) {
-                System.out.printf("YOU HAVE LOW ATTENDANCE (%.2f%%) in %s !  DONT TAKE ANY MORE LEAVES%n", L1[i], L2[i]);
-            } else if (L1[i] < 75) {
-                System.out.printf("YOU HAVE SHORTAGE OF ATTENDANCE (%.2f%%) in %s ! VISIT YOUR CLASS ADVISOR AND ATTEND MORE CLASSES !!%n", L1[i], L2[i]);
+        for (String subjectCode : day.getSubjects()) {
+            if (!subjectCode.equals("Class Discussion") && !subjectCode.equals("Library/Club")) {
+                Subject subject = findSubject(subjectCode);
+                if (subject != null) {
+                    subject.markAttendance(isPresent);
+                }
             }
         }
+    }
+
+    private void simulateWeek(Scanner scanner) {
+        System.out.println("SIMULATING THIS WEEK");
+        System.out.println("""
+                1) PRESENT
+                2) ABSENT""");
+        int attendanceChoice = scanner.nextInt();
+        boolean isPresent = (attendanceChoice == 1);
+
+        int[] weeklyClasses = {6, 6, 2, 6, 5, 3, 4};
+
+        for (int i = 0; i < subjects.length; i++) {
+            subjects[i].markMultipleAttendance(weeklyClasses[i], isPresent);
+        }
+    }
+
+    private Subject findSubject(String code) {
+        for (Subject subject : subjects) {
+            if (subject.getCode().equals(code)) {
+                return subject;
+            }
+        }
+        return null;
+    }
+
+    public static void main(String[] args) {
+        AttendanceSimulator simulator = new AttendanceSimulator();
+        simulator.simulate();
     }
 }
